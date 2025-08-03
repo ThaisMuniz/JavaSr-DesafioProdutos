@@ -1,0 +1,9 @@
+services:
+  mysql:
+    container_name: 'mysql-produtosdb'
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=produtosdb'
+      - 'MYSQL_ROOT_PASSWORD=abcd123'
+    ports:
+      - '3306:3306'

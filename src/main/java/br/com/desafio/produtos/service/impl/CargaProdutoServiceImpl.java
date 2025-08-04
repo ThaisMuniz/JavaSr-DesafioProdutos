@@ -2,8 +2,10 @@ package br.com.desafio.produtos.service.impl;
 
 import br.com.desafio.produtos.service.CargaProdutoService;
 import br.com.desafio.produtos.domain.entity.ProdutoEntity;
+import br.com.desafio.produtos.domain.exception.FormatoDePrecoInvalidoException;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
 import br.com.desafio.produtos.infrastructure.config.dto.ProdutoJsonDTO;
+import br.com.desafio.produtos.util.ConversorFinanceiroUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -18,6 +20,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class CargaProdutoServiceImpl implements CargaProdutoService {
@@ -84,26 +87,34 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
                 .map(dto -> dto.getProduct() + "::" + dto.getType())
                 .collect(Collectors.toSet());
 
-        Set<String> chavesExistentesNoBanco = produtoRepository.findChavesExistentes(chavesParaValidar);
+        Set<String> chavesExistentesNoBanco = produtoRepository.buscarChavesExistentes(chavesParaValidar);
 
         if (!chavesExistentesNoBanco.isEmpty()) {
             logger.warn("[filtrarProdutosValidos] Encontrados {} produtos no arquivo {} que já existem no banco de dados e serão ignorados.", chavesExistentesNoBanco.size(), nomeArquivo);
         }
 
-        return produtosUnicosNoArquivo.stream()
-                .filter(dto -> !chavesExistentesNoBanco.contains(dto.getProduct() + "::" + dto.getType()))
-                .map(CargaProdutoServiceImpl::getProdutoEntity)
+        List<ProdutoEntity> produtosValidos = IntStream.range(0, produtosDto.size())
+                .mapToObj(index -> toProdutoEntity(produtosDto.get(index), index + 1))
+                .filter(dto -> dto.isPresent() && !chavesExistentesNoBanco.contains(dto.get().getNome() + "::" + dto.get().getTipo()))
+                .map(Optional::get)
                 .collect(Collectors.toList());
+
+        return produtosValidos;
     }
 
-    private static ProdutoEntity getProdutoEntity(ProdutoJsonDTO dto) {
-        ProdutoEntity produto = new ProdutoEntity();
-        produto.setNome(dto.getProduct());
-        produto.setQuantidade(dto.getQuantity());
-        produto.setTipo(dto.getType());
-        produto.setIndustria(dto.getIndustry());
-        produto.setOrigem(dto.getOrigin());
-        produto.setPreco(dto.getPrice());
-        return produto;
+    private Optional<ProdutoEntity> toProdutoEntity(ProdutoJsonDTO dto, int linha) {
+        try {
+            ProdutoEntity produto = new ProdutoEntity();
+            produto.setNome(dto.getProduct());
+            produto.setQuantidade(dto.getQuantity());
+            produto.setTipo(dto.getType());
+            produto.setIndustria(dto.getIndustry());
+            produto.setOrigem(dto.getOrigin());
+            produto.setPreco(ConversorFinanceiroUtil.getValorBigDecimal(dto.getPrice()));
+            return Optional.of(produto);
+        } catch (FormatoDePrecoInvalidoException e) {
+            logger.error("Registro ignorado no arquivo na linha aprox. {}. Motivo: {}", linha, e.getMessage());
+            return Optional.empty();
+        }
     }
 }

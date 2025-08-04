@@ -4,6 +4,9 @@ import br.com.desafio.produtos.service.ProdutoService;
 import br.com.desafio.produtos.domain.entity.ProdutoEntity;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +22,20 @@ public class ProdutoServiceImpl implements ProdutoService {
         this.produtoRepository = produtoRepository;
     }
 
-    public List<ProdutoDTO> listarPorNome(String nome){
-        return null;
+    public Page<ProdutoDTO> buscarComFiltros(String nome, BigDecimal precoInicial, BigDecimal precoFinal, Pageable pageable) {
+        Page<ProdutoEntity> paginaDeProdutos = produtoRepository.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
+        return paginaDeProdutos.map(this::toProdutoDto);
     }
 
-    public List<ProdutoDTO> listarPorIntervaloPreco(BigDecimal precoInicial, BigDecimal precoFinal){
-        return null;
+    private ProdutoDTO toProdutoDto(ProdutoEntity produto) {
+        return new ProdutoDTO(
+                produto.getNome(),
+                produto.getQuantidade(),
+                produto.getPreco(),
+                produto.getTipo(),
+                produto.getIndustria(),
+                produto.getOrigem()
+        );
     }
 
     @Transactional

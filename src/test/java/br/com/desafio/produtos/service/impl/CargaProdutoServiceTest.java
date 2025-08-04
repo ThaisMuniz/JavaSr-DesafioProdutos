@@ -52,7 +52,7 @@ public class CargaProdutoServiceTest {
         when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);
         when(objectReader.at("/data")).thenReturn(objectReader);
         when(objectReader.readValue(any(InputStream.class))).thenReturn(listaDeDtos);
-        when(produtoRepository.findChavesExistentes(any())).thenReturn(Collections.emptySet());
+        when(produtoRepository.buscarChavesExistentes(any())).thenReturn(Collections.emptySet());
 
         CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste.json");
 
@@ -67,7 +67,7 @@ public class CargaProdutoServiceTest {
 
     @Test
     void naoDeveSalvarProdutosQueJaExistemNoBanco() throws Exception {
-       ProdutoJsonDTO dtoExistente = new ProdutoJsonDTO();
+        ProdutoJsonDTO dtoExistente = new ProdutoJsonDTO();
         dtoExistente.setProduct("Produto Existente");
         dtoExistente.setType("Tipo X");
         dtoExistente.setPrice("$5.00");
@@ -84,7 +84,7 @@ public class CargaProdutoServiceTest {
         when(objectReader.at("/data")).thenReturn(objectReader);
         when(objectReader.readValue(any(InputStream.class))).thenReturn(listaDeDtos);
         // Simula que um dos produtos já existente no banco
-        when(produtoRepository.findChavesExistentes(any())).thenReturn(Set.of(chaveExistente));
+        when(produtoRepository.buscarChavesExistentes(any())).thenReturn(Set.of(chaveExistente));
 
         CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste.json");
 

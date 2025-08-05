@@ -1,17 +1,16 @@
 package br.com.desafio.produtos.infrastructure.web.controller;
 
-import br.com.desafio.produtos.infrastructure.web.dto.ProdutoDTO;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 
 @RestController
@@ -27,7 +26,7 @@ public class ProdutoController {
     private static final int MAX_PAGE_SIZE = 100;
 
     @GetMapping
-    public ResponseEntity<Page<ProdutoDTO>> listarComFiltros(
+    public ResponseEntity<Page<ProdutoResponseDTO>> listarComFiltros(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) BigDecimal precoInicial,
             @RequestParam(required = false) BigDecimal precoFinal,
@@ -39,8 +38,15 @@ public class ProdutoController {
         }
         Sort sortPadrao = Sort.by(Sort.Direction.ASC, "nome");
         Pageable pageable = PageRequest.of(page, size, sortPadrao);
-        Page<ProdutoDTO> paginaDeProdutos = produtoService.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
+        Page<ProdutoResponseDTO> paginaDeProdutos = produtoService.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
         return ResponseEntity.ok(paginaDeProdutos);
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> cadastrarProduto(@RequestBody @Valid ProdutoRequestDTO produtoRequestDTO) {
+
+        produtoService.cadastrarProduto(produtoRequestDTO);
+        return ResponseEntity.noContent().build();
     }
 
 }

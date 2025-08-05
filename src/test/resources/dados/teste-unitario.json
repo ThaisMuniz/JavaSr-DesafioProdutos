@@ -1,0 +1,5 @@
+{"data": [
+  { "product": "Produto Válido 1", "quantity": 10, "price": "", "type": "TIPO_A", "industry": "Ind A", "origin": "BR" },
+  { "product": "Produto Inválido", "quantity": 5, "price": "", "type": "TIPO_B", "industry": "Ind B", "origin": "US" }
+  ]
+}

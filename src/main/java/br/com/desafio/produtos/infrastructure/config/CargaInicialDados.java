@@ -4,6 +4,7 @@ import br.com.desafio.produtos.service.CargaProdutoService;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,9 @@ public class CargaInicialDados implements ApplicationRunner {
         this.cargaProdutoService = cargaProdutoService;
     }
 
+    @Value("${carga.arquivos.produtos}")
+    private List<String> arquivosParaProcessar;
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         if (produtoRepository.count() > 0) {
@@ -35,14 +39,7 @@ public class CargaInicialDados implements ApplicationRunner {
         logger.info("[run] Iniciando carga paralela de produtos...");
         long totalStartTime = System.currentTimeMillis();
 
-        List<String> arquivos = List.of(
-                "dados/data_1.json",
-                "dados/data_2.json",
-                "dados/data_3.json",
-                "dados/data_4.json"
-        );
-
-        List<CompletableFuture<Integer>> futures = arquivos.stream()
+        List<CompletableFuture<Integer>> futures = arquivosParaProcessar.stream()
                 .map(cargaProdutoService::carregarArquivo)
                 .collect(Collectors.toList());
 

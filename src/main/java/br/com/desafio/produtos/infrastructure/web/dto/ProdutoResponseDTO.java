@@ -17,7 +17,4 @@ public class ProdutoResponseDTO {
     private String industria;
     private String origem;
 
-    public String getPrecoFormatado() {
-        return ConversorFinanceiroUtil.getValorFormatado(this.preco);
-    }
 }

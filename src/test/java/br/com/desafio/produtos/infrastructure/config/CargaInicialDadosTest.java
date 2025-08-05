@@ -7,7 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,9 +33,12 @@ public class CargaInicialDadosTest {
         when(produtoRepository.count()).thenReturn(0L);
         when(cargaProdutoService.carregarArquivo(anyString())).thenReturn(CompletableFuture.completedFuture(10));
 
+        ReflectionTestUtils.setField(cargaInicialDados, "arquivosParaProcessar", List.of("dados/teste-unitario.json")
+        );
+
         cargaInicialDados.run(null);
 
-        verify(cargaProdutoService, times(4)).carregarArquivo(anyString());
+        verify(cargaProdutoService, times(1)).carregarArquivo(anyString());
     }
 
     @Test

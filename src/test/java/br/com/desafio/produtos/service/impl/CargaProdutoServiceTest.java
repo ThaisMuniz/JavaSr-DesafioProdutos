@@ -54,7 +54,7 @@ public class CargaProdutoServiceTest {
         when(objectReader.readValue(any(InputStream.class))).thenReturn(listaDeDtos);
         when(produtoRepository.buscarChavesExistentes(any())).thenReturn(Collections.emptySet());
 
-        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste.json");
+        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste-unitario.json");
 
         assertThat(future).isCompletedWithValue(1);
 
@@ -86,7 +86,7 @@ public class CargaProdutoServiceTest {
         // Simula que um dos produtos já existente no banco
         when(produtoRepository.buscarChavesExistentes(any())).thenReturn(Set.of(chaveExistente));
 
-        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste.json");
+        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste-unitario.json");
 
         assertThat(future).isCompletedWithValue(1);
         verify(produtoRepository, times(1)).saveAll(produtosCaptor.capture());

@@ -1,6 +1,5 @@
 package br.com.desafio.produtos.infrastructure.web.dto;
 
-import br.com.desafio.produtos.util.ConversorFinanceiroUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -17,7 +16,4 @@ public class ProdutoResponseDTO {
     private String industria;
     private String origem;
 
-    public String getPrecoFormatado() {
-        return ConversorFinanceiroUtil.getValorFormatado(this.preco);
-    }
 }

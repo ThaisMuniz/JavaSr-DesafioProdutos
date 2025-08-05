@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Service
 public class ProdutoServiceImpl implements ProdutoService {
 
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
     public ProdutoServiceImpl(ProdutoRepository produtoRepository) {
         this.produtoRepository = produtoRepository;

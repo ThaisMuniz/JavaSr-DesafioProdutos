@@ -1,0 +1,9 @@
+{"data": [
+    { "product": "Produto Válido 1", "quantity": 10, "price": "", "type": "TIPO_A", "industry": "Ind A", "origin": "BR" },
+    { "product": "Produto Inválido", "quantity": 5, "price": "", "type": "TIPO_B", "industry": "Ind B", "origin": "US" },
+    { "product": "Produto Válido 2", "quantity": 20, "price": "", "type": "TIPO_C", "industry": "Ind C", "origin": "DE" },
+    { "product": "Produto Duplicado", "quantity": 1, "price": "", "type": "TIPO_D", "industry": "Ind D", "origin": "JP" },
+    { "product": "Produto Duplicado", "quantity": 2, "price": "", "type": "TIPO_D", "industry": "Ind D", "origin": "JP" },
+    { "product": "Produto_Válido 3", "quantity": 99, "price": "", "type": "TIPO_E", "industry": "Ind E", "origin": "FR" }
+  ]
+}

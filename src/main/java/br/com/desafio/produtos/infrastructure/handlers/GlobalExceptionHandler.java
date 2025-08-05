@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
                 request.getDescription(false).replace("uri=", ""),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Erro de validação na requisição",
+                "Erro de validação na requisição.",
                 fieldErrors
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -42,12 +42,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleBaralhoClientException(RegistroDuplicadoException ex, WebRequest request) {
         ErrorResponseDTO errorResponse = new ErrorResponseDTO(
                 request.getDescription(false).replace("uri=", ""),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
                 ex.getMessage(),
                 null
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
 }

@@ -1,7 +1,9 @@
 package br.com.desafio.produtos.service.impl;
 
 import br.com.desafio.produtos.domain.entity.ProdutoEntity;
+import br.com.desafio.produtos.domain.exception.RegistroDuplicadoException;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +19,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ProdutoServiceImplTest {
@@ -52,5 +55,40 @@ public class ProdutoServiceImplTest {
         assertThat(response.getNome()).isEqualTo(produto.getNome());
         assertThat(response.getPreco()).isEqualTo(produto.getPreco());
         assertThat(response.getTipo()).isEqualTo(produto.getTipo());
+    }
+
+    @Test
+    void deveCadastrarProdutoComSucesso() {
+        ProdutoRequestDTO produtoRequestDTO = new ProdutoRequestDTO("Produto Novo",
+                10, new BigDecimal("100.00"), "Tipo A", "Industria X", "BR");
+
+        when(produtoRepository.existsByNomeAndTipo(produtoRequestDTO.getNome(), produtoRequestDTO.getTipo())).thenReturn(false);
+
+        ProdutoEntity produtoSalvoComId = new ProdutoEntity(1L,
+                produtoRequestDTO.getNome(), produtoRequestDTO.getQuantidade(),
+                produtoRequestDTO.getPreco(), produtoRequestDTO.getTipo(),
+                produtoRequestDTO.getIndustria(), produtoRequestDTO.getOrigem());
+
+        when(produtoRepository.save(any(ProdutoEntity.class))).thenReturn(produtoSalvoComId);
+
+        produtoService.cadastrarProduto(produtoRequestDTO);
+
+        verify(produtoRepository, times(1)).existsByNomeAndTipo("Produto Novo", "Tipo A");
+        verify(produtoRepository, times(1)).save(any(ProdutoEntity.class));
+    }
+
+    @Test
+    void deveLancarExcecaoAoTentarCadastrarProdutoDuplicado() {
+        ProdutoRequestDTO produtoRequestDTO = new ProdutoRequestDTO("Produto Existente",
+                10, new BigDecimal("100.00"), "Tipo B", "Industria Y", "US");
+
+       when(produtoRepository.existsByNomeAndTipo(produtoRequestDTO.getNome(), produtoRequestDTO.getTipo())).thenReturn(true);
+
+       assertThatThrownBy(() -> produtoService.cadastrarProduto(produtoRequestDTO))
+                .isInstanceOf(RegistroDuplicadoException.class)
+                .hasMessage("Já existe um produto cadastrado com o mesmo nome e tipo.");
+
+        // Garante que o método save não foi chamado
+        verify(produtoRepository, never()).save(any(ProdutoEntity.class));
     }
 }

@@ -1,7 +1,10 @@
 package br.com.desafio.produtos.infrastructure.web.controller;
 
+import br.com.desafio.produtos.domain.exception.RegistroDuplicadoException;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -19,6 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +35,8 @@ public class ProdutoControllerTest {
 
     @MockBean
     private ProdutoService produtoService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void deveRetornarProdutosPaginadoComFiltros() throws Exception {
@@ -80,5 +87,45 @@ public class ProdutoControllerTest {
         assertThat(pageableCapturado.getPageNumber()).isEqualTo(0);
         assertThat(pageableCapturado.getPageSize()).isEqualTo(10);
         assertThat(pageableCapturado.getSort()).isEqualTo(Sort.by(Sort.Direction.ASC, "nome"));
+    }
+
+    @Test
+    void deveRetornarStatus204NoContentAoCadastrarProduto() throws Exception {
+        ProdutoRequestDTO request = new ProdutoRequestDTO("Produto Ok",
+                5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
+
+        doNothing().when(produtoService).cadastrarProduto(any(ProdutoRequestDTO.class));
+
+        mockMvc.perform(post("/produtos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deveRetornarStatus400BadRequestParaRequestInvalido() throws Exception {
+        ProdutoRequestDTO requestInvalida = new ProdutoRequestDTO("",
+                50, new BigDecimal(0), "Tipo C", null, "BR");
+
+        mockMvc.perform(post("/produtos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestInvalida)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Erro de validação na requisição."))
+                .andExpect(jsonPath("$.details").isMap());
+    }
+
+    @Test
+    void deveRetornarStatus409ConflictParaProdutoDuplicado() throws Exception {
+        ProdutoRequestDTO request = new ProdutoRequestDTO("Produto Ok",
+                5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
+
+        doThrow(new RegistroDuplicadoException("Já existe um produto cadastrado..."))
+                .when(produtoService).cadastrarProduto(any(ProdutoRequestDTO.class));
+
+        mockMvc.perform(post("/produtos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
     }
 }

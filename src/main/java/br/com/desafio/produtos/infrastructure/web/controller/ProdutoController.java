@@ -46,7 +46,7 @@ public class ProdutoController {
     public ResponseEntity<Void> cadastrarProduto(@RequestBody @Valid ProdutoRequestDTO produtoRequestDTO) {
 
         produtoService.cadastrarProduto(produtoRequestDTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
 }

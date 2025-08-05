@@ -3,6 +3,12 @@ package br.com.desafio.produtos.infrastructure.web.controller;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 
+@Tag(name = "Produtos", description = "Endpoints para o gerenciamento de produtos")
 @RestController
 @RequestMapping("/produtos")
 public class ProdutoController {
@@ -25,6 +32,10 @@ public class ProdutoController {
 
     private static final int MAX_PAGE_SIZE = 100;
 
+    @Operation(summary = "Lista produtos com filtros e paginação", description = "Retorna uma lista paginada de produtos, com filtros opcionais por nome e intervalo de preço.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso.")
+    })
     @GetMapping
     public ResponseEntity<Page<ProdutoResponseDTO>> listarComFiltros(
             @RequestParam(required = false) String nome,
@@ -42,6 +53,15 @@ public class ProdutoController {
         return ResponseEntity.ok(paginaDeProdutos);
     }
 
+    @Operation(summary = "Cadastra um novo produto", description = "Cria um novo produto no banco de dados com base nos dados fornecidos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Produto cadastrado com sucesso.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponseDTO.class))),
+            @ApiResponse(responseCode = "409", description = "Produto com mesmo nome e tipo já existente.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponseDTO.class)))
+    })
     @PostMapping
     public ResponseEntity<Void> cadastrarProduto(@RequestBody @Valid ProdutoRequestDTO produtoRequestDTO) {
 

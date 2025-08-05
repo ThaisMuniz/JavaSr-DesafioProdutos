@@ -1,6 +1,5 @@
 package br.com.desafio.produtos.infrastructure.web.dto;
 
-import br.com.desafio.produtos.util.ConversorFinanceiroUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -102,7 +102,7 @@ public class CargaProdutoServiceTest {
         when(objectReader.at("/data")).thenReturn(objectReader);
         when(objectReader.readValue(any(InputStream.class))).thenThrow(new RuntimeException("Erro de I/O"));
 
-        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/arquivo_corrompido-teste-unitario.json");
+        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/arquivo_corrompido.json");
 
         assertThat(future).isCompletedExceptionally();
     }

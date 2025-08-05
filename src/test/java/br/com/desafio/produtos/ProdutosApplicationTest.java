@@ -4,7 +4,6 @@ import br.com.desafio.produtos.infrastructure.config.CargaInicialDados;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 public class ProdutosApplicationTest {

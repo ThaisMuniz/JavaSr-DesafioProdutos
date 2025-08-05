@@ -1,6 +1,6 @@
 package br.com.desafio.produtos.infrastructure.web.controller;
 
-import br.com.desafio.produtos.infrastructure.web.dto.ProdutoDTO;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,8 +33,8 @@ public class ProdutoControllerTest {
 
     @Test
     void deveRetornarProdutosPaginadoComFiltros() throws Exception {
-        ProdutoDTO produtoResponse = new ProdutoDTO("RTIX", 10, new BigDecimal("19.99"), "3XL", "Industrial", "LA");
-        Page<ProdutoDTO> paginaDeResposta = new PageImpl<>(List.of(produtoResponse));
+        ProdutoResponseDTO produtoResponse = new ProdutoResponseDTO("RTIX", 10, new BigDecimal("19.99"), "3XL", "Industrial", "LA");
+        Page<ProdutoResponseDTO> paginaDeResposta = new PageImpl<>(List.of(produtoResponse));
 
         when(produtoService.buscarComFiltros(
                 eq("RTIX"),
@@ -65,7 +65,7 @@ public class ProdutoControllerTest {
 
     @Test
     void deveUsarPaginacaoPadrao() throws Exception {
-        Page<ProdutoDTO> paginaVazia = new PageImpl<>(List.of());
+        Page<ProdutoResponseDTO> paginaVazia = new PageImpl<>(List.of());
         when(produtoService.buscarComFiltros(any(), any(), any(), any(Pageable.class)))
                 .thenReturn(paginaVazia);
 

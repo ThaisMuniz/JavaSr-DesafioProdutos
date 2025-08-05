@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor
 @Data
-public class ProdutoDTO {
+public class ProdutoResponseDTO {
 
     private String nome;
     private int quantidade;

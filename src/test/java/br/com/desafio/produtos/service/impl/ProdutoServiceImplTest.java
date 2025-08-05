@@ -2,7 +2,7 @@ package br.com.desafio.produtos.service.impl;
 
 import br.com.desafio.produtos.domain.entity.ProdutoEntity;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
-import br.com.desafio.produtos.infrastructure.web.dto.ProdutoDTO;
+import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,13 +42,13 @@ public class ProdutoServiceImplTest {
 
         when(produtoRepository.buscarComFiltros(any(), any(),any(), eq(pageable))).thenReturn(paginaDeEntidades);
 
-        Page<ProdutoDTO> resultado = produtoService.buscarComFiltros("P", null, null, pageable);
+        Page<ProdutoResponseDTO> resultado = produtoService.buscarComFiltros("P", null, null, pageable);
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.getTotalElements()).isEqualTo(1);
         assertThat(resultado.getContent()).hasSize(1);
 
-        ProdutoDTO response = resultado.getContent().get(0);
+        ProdutoResponseDTO response = resultado.getContent().get(0);
         assertThat(response.getNome()).isEqualTo(produto.getNome());
         assertThat(response.getPreco()).isEqualTo(produto.getPreco());
         assertThat(response.getTipo()).isEqualTo(produto.getTipo());

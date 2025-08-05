@@ -24,4 +24,6 @@ public interface ProdutoRepository extends JpaRepository<ProdutoEntity, Long> {
             @Param("precoInicial") BigDecimal precoInicial,
             @Param("precoFinal") BigDecimal precoFinal,
             Pageable pageable);
+
+    boolean existsByNomeAndTipo(String nome, String tipo);
 }

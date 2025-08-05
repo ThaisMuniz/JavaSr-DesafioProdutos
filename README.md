@@ -10,3 +10,6 @@
 4. Agora execute o sistema:
    ``` java -jar target/produtos-0.1.0.jar ```
 
+5. Para acessar o contrato do serviço acessar:
+    ``` http://localhost:8080/swagger-ui/index.html   ``` 
+

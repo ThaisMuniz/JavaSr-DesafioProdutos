@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 public class CargaProdutoServiceImpl implements CargaProdutoService {
@@ -72,7 +71,7 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
      * @return
      */
     private List<ProdutoEntity> filtrarProdutosValidos(List<ProdutoJsonDTO> produtosDto, String nomeArquivo) {
-        logger.info("[filtrarProdutosValidos] Iniciando filtragem e validação dos produtos do arquivo {}...", nomeArquivo);
+        logger.info("[filtrarProdutosValidos] Iniciando filtragem e validacao dos produtos do arquivo {}, quantidade total de registros {}...", nomeArquivo, produtosDto.size());
 
         List<ProdutoJsonDTO> produtosUnicosNoArquivo = produtosDto.stream()
                 .collect(Collectors.collectingAndThen(
@@ -93,16 +92,15 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
             logger.warn("[filtrarProdutosValidos] Encontrados {} produtos no arquivo {} que já existem no banco de dados e serão ignorados.", chavesExistentesNoBanco.size(), nomeArquivo);
         }
 
-        List<ProdutoEntity> produtosValidos = IntStream.range(0, produtosDto.size())
-                .mapToObj(index -> toProdutoEntity(produtosDto.get(index), index + 1))
-                .filter(dto -> dto.isPresent() && !chavesExistentesNoBanco.contains(dto.get().getNome() + "::" + dto.get().getTipo()))
-                .map(Optional::get)
+        List<ProdutoEntity> produtosValidos = produtosUnicosNoArquivo.stream()
+                .filter(produtoDto -> !chavesExistentesNoBanco.contains(produtoDto.getProduct() + "::" + produtoDto.getType()))
+                .map(this::toProdutoEntity)
                 .collect(Collectors.toList());
 
         return produtosValidos;
     }
 
-    private Optional<ProdutoEntity> toProdutoEntity(ProdutoJsonDTO dto, int linha) {
+    private ProdutoEntity toProdutoEntity(ProdutoJsonDTO dto) {
         try {
             ProdutoEntity produto = new ProdutoEntity();
             produto.setNome(dto.getProduct());
@@ -111,10 +109,10 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
             produto.setIndustria(dto.getIndustry());
             produto.setOrigem(dto.getOrigin());
             produto.setPreco(ConversorFinanceiroUtil.getValorBigDecimal(dto.getPrice()));
-            return Optional.of(produto);
+            return produto;
         } catch (FormatoDePrecoInvalidoException e) {
-            logger.error("Registro ignorado no arquivo na linha aprox. {}. Motivo: {}", linha, e.getMessage());
-            return Optional.empty();
+            logger.error("Registro ignorado no arquivo. Produto: {} Tipo: {}. Erro: {}", dto.getProduct(), dto.getType(), e.getMessage());
+            return null;
         }
     }
 }

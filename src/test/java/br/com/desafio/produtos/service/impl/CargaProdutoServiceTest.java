@@ -96,6 +96,37 @@ public class CargaProdutoServiceTest {
     }
 
     @Test
+    void deveSalvarSomenteUmProdutoQuandoProductETypeDuplicados() throws Exception {
+        ProdutoJsonDTO dto1 = new ProdutoJsonDTO();
+        dto1.setProduct("Produto 1");
+        dto1.setType("Tipo X");
+        dto1.setPrice("$5.00");
+        ProdutoJsonDTO dto2 = new ProdutoJsonDTO();
+        dto2.setProduct("Produto 2");
+        dto2.setType("Tipo Y");
+        dto2.setPrice("$15.00");
+        ProdutoJsonDTO dto3 = new ProdutoJsonDTO();
+        dto3.setProduct("Produto 2");
+        dto3.setType("Tipo Y");
+        dto3.setPrice("$15.00");
+        List<ProdutoJsonDTO> listaDeDtos = List.of(dto1, dto2, dto3);
+        String chaveExistente = "Produto Existente::Tipo Z";
+
+        when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);
+        when(objectReader.at("/data")).thenReturn(objectReader);
+        when(objectReader.readValue(any(InputStream.class))).thenReturn(listaDeDtos);
+        when(produtoRepository.buscarChavesExistentes(any())).thenReturn(Set.of(chaveExistente));
+
+        CompletableFuture<Integer> future = cargaProdutoService.carregarArquivo("dados/teste-unitario.json");
+
+        assertThat(future).isCompletedWithValue(2);
+        verify(produtoRepository, times(1)).saveAll(produtosCaptor.capture());
+        List<ProdutoEntity> produtosSalvos = produtosCaptor.getValue();
+        assertThat(produtosSalvos).hasSize(2);
+        assertThat(produtosSalvos.get(0).getNome()).isEqualTo("Produto 1");
+    }
+
+    @Test
     void deveRetornarFuturoComExcecaoQuandoArquivoNaoPuderSerLido() throws Exception {
 
         when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);

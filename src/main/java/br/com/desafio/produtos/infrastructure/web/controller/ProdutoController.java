@@ -32,7 +32,8 @@ public class ProdutoController {
 
     private static final int MAX_PAGE_SIZE = 100;
 
-    @Operation(summary = "Lista produtos com filtros e paginação", description = "Retorna uma lista paginada de produtos, com filtros opcionais por nome e intervalo de preço.")
+    @Operation(summary = "Lista produtos com filtros e paginação",
+            description = "Retorna uma lista paginada de produtos, com filtros opcionais por nome e intervalo de preço.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso.")
     })
@@ -53,7 +54,8 @@ public class ProdutoController {
         return ResponseEntity.ok(paginaDeProdutos);
     }
 
-    @Operation(summary = "Cadastra um novo produto", description = "Cria um novo produto no banco de dados com base nos dados fornecidos.")
+    @Operation(summary = "Cadastra um novo produto",
+            description = "Cria um novo produto no banco de dados com base nos dados fornecidos.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Produto cadastrado com sucesso.",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProdutoResponseDTO.class))),

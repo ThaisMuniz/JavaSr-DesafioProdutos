@@ -1,5 +1,6 @@
 package br.com.desafio.produtos.infrastructure.web.controller;
 
+import br.com.desafio.produtos.infrastructure.web.dto.PageResponseDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
@@ -9,9 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +37,7 @@ public class ProdutoController {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso.")
     })
     @GetMapping
-    public ResponseEntity<Page<ProdutoResponseDTO>> listarComFiltros(
+    public ResponseEntity<PageResponseDTO<ProdutoResponseDTO>> listarComFiltros(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) BigDecimal precoInicial,
             @RequestParam(required = false) BigDecimal precoFinal,
@@ -48,9 +47,9 @@ public class ProdutoController {
         if (size > MAX_PAGE_SIZE) {
             size = MAX_PAGE_SIZE;
         }
-        Sort sortPadrao = Sort.by(Sort.Direction.ASC, "nome");
-        Pageable pageable = PageRequest.of(page, size, sortPadrao);
-        Page<ProdutoResponseDTO> paginaDeProdutos = produtoService.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
+        var sortPadrao = Sort.by(Sort.Direction.ASC, "nome");
+        var pageable = PageRequest.of(page, size, sortPadrao);
+        PageResponseDTO<ProdutoResponseDTO> paginaDeProdutos = produtoService.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
         return ResponseEntity.ok(paginaDeProdutos);
     }
 

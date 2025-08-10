@@ -15,7 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(
-        properties = "carga.arquivos.produtos=dados/data_1-teste-integracao.json"
+        properties = "carga.arquivos.produtos=dados/teste-integracao-carga.json"
 )
 @ActiveProfiles("test")
 @SpringBootTest
@@ -28,7 +28,7 @@ public class CargaInicialDadosIT {
     void deveCarregarProdutosIgnorandoInvalidos() {
         List<ProdutoEntity> produtosNoBanco = produtoRepository.findAll();
 
-        assertThat(produtosNoBanco).hasSize(5);
+        assertThat(produtosNoBanco).hasSize(4);
         Optional<ProdutoEntity> produtoValido1 = produtosNoBanco.stream()
                 .filter(p -> p.getNome().equals("Produto Válido 1"))
                 .findFirst();

@@ -1,21 +1,21 @@
 package br.com.desafio.produtos.infrastructure.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Data
+@Getter
 public class ErrorResponseDTO {
 
-    private LocalDateTime timestamp = LocalDateTime.now();
-    private String path;
-    private int status;
-    private String error;
-    private String message;
-    private Map<String, String> details;
+    private final LocalDateTime timestamp = LocalDateTime.now();
+    private final String path;
+    private final int status;
+    private final String error;
+    private final String message;
+    private final Map<String, String> details;
 
     public ErrorResponseDTO(String path,  int status, String error, String message, Map<String, String> details) {
         this.path = path;

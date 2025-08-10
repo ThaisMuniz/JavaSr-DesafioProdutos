@@ -1,6 +1,7 @@
 package br.com.desafio.produtos.infrastructure.web.controller;
 
 import br.com.desafio.produtos.domain.exception.RegistroDuplicadoException;
+import br.com.desafio.produtos.infrastructure.web.dto.PageResponseDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoResponseDTO;
 import br.com.desafio.produtos.service.ProdutoService;
@@ -10,8 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -40,15 +39,15 @@ public class ProdutoControllerTest {
 
     @Test
     void deveRetornarProdutosPaginadoComFiltros() throws Exception {
-        ProdutoResponseDTO produtoResponse = new ProdutoResponseDTO("RTIX", 10, new BigDecimal("19.99"), "3XL", "Industrial", "LA");
-        Page<ProdutoResponseDTO> paginaDeResposta = new PageImpl<>(List.of(produtoResponse));
+        var produtoResponse = new ProdutoResponseDTO("RTIX", 10, new BigDecimal("19.99"), "3XL", "Industrial", "LA");
+        PageResponseDTO<ProdutoResponseDTO> paginaProdutos = new PageResponseDTO<>(List.of(produtoResponse));
 
         when(produtoService.buscarComFiltros(
                 eq("RTIX"),
                 eq(new BigDecimal("10.00")),
                 eq(new BigDecimal("20.00")),
                 any(Pageable.class))
-        ).thenReturn(paginaDeResposta);
+        ).thenReturn(paginaProdutos);
 
         mockMvc.perform(get("/produtos")
                         .param("nome", "RTIX")
@@ -72,7 +71,8 @@ public class ProdutoControllerTest {
 
     @Test
     void deveUsarPaginacaoPadrao() throws Exception {
-        Page<ProdutoResponseDTO> paginaVazia = new PageImpl<>(List.of());
+        PageResponseDTO<ProdutoResponseDTO> paginaVazia = new PageResponseDTO<>(List.of());
+
         when(produtoService.buscarComFiltros(any(), any(), any(), any(Pageable.class)))
                 .thenReturn(paginaVazia);
 
@@ -91,8 +91,7 @@ public class ProdutoControllerTest {
 
     @Test
     void deveRetornarStatus204NoContentAoCadastrarProduto() throws Exception {
-        ProdutoRequestDTO request = new ProdutoRequestDTO("Produto Ok",
-                5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
+        var request = new ProdutoRequestDTO("Produto Ok",5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
 
         doNothing().when(produtoService).cadastrarProduto(any(ProdutoRequestDTO.class));
 
@@ -104,8 +103,7 @@ public class ProdutoControllerTest {
 
     @Test
     void deveRetornarStatus400BadRequestParaRequestInvalido() throws Exception {
-        ProdutoRequestDTO requestInvalida = new ProdutoRequestDTO("",
-                50, new BigDecimal(0), "Tipo C", null, "BR");
+        var requestInvalida = new ProdutoRequestDTO("",50, new BigDecimal(0), "Tipo C", null, "BR");
 
         mockMvc.perform(post("/produtos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,8 +115,7 @@ public class ProdutoControllerTest {
 
     @Test
     void deveRetornarStatus409ConflictParaProdutoDuplicado() throws Exception {
-        ProdutoRequestDTO request = new ProdutoRequestDTO("Produto Ok",
-                5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
+        var request = new ProdutoRequestDTO("Produto Ok", 5, new BigDecimal("25.75"), "Tipo A", "Industria B", "BR");
 
         doThrow(new RegistroDuplicadoException("Já existe um produto cadastrado..."))
                 .when(produtoService).cadastrarProduto(any(ProdutoRequestDTO.class));

@@ -1,12 +1,12 @@
 package br.com.desafio.produtos.infrastructure.web.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
 @AllArgsConstructor
-@Data
+@Getter
 public class ProdutoResponseDTO {
 
     private String nome;

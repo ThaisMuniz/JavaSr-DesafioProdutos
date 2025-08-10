@@ -1,13 +1,13 @@
 package br.com.desafio.produtos.infrastructure.web.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 
 @AllArgsConstructor
-@Data
+@Getter
 public class ProdutoRequestDTO {
 
     @NotBlank(message = "O nome não pode ser nulo ou vazio.")

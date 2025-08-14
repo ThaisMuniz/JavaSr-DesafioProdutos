@@ -5,7 +5,6 @@ import br.com.desafio.produtos.domain.entity.ProdutoEntity;
 import br.com.desafio.produtos.domain.exception.FormatoDePrecoInvalidoException;
 import br.com.desafio.produtos.domain.repository.ProdutoRepository;
 import br.com.desafio.produtos.infrastructure.config.dto.ProdutoJsonDTO;
-import br.com.desafio.produtos.util.ConversorFinanceiroUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -41,22 +40,24 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
 
         try {
             ClassPathResource resource = new ClassPathResource(nomeArquivo);
-            InputStream inputStream = resource.getInputStream();
 
-            TypeReference<List<ProdutoJsonDTO>> typeReference = new TypeReference<>() {};
-            ObjectReader reader = objectMapper.readerFor(typeReference).at("/data");
+            try (InputStream inputStream = resource.getInputStream()) {
 
-            List<ProdutoJsonDTO> produtosDto = reader.readValue(inputStream);
+                TypeReference<List<ProdutoJsonDTO>> typeReference = new TypeReference<>() {};
+                ObjectReader reader = objectMapper.readerFor(typeReference).at("/data");
 
-            List<ProdutoEntity> produtosParaSalvar = filtrarProdutosValidos(produtosDto, nomeArquivo);
+                List<ProdutoJsonDTO> produtosDto = reader.readValue(inputStream);
 
-            produtoRepository.saveAll(produtosParaSalvar);
+                Set<ProdutoEntity> produtosParaSalvar = filtrarProdutosValidos(produtosDto, nomeArquivo);
 
-            long endTime = System.currentTimeMillis();
-            logger.info("[carregarArquivo] Arquivo {} processado com sucesso em {} ms. {} produtos salvos.",
-                    nomeArquivo, (endTime - startTime), produtosParaSalvar.size());
+                produtoRepository.saveAll(produtosParaSalvar);
 
-            return CompletableFuture.completedFuture(produtosParaSalvar.size());
+                long endTime = System.currentTimeMillis();
+                logger.info("[carregarArquivo] Arquivo {} processado com sucesso em {} ms. {} produtos salvos.",
+                        nomeArquivo, (endTime - startTime), produtosParaSalvar.size());
+
+                return CompletableFuture.completedFuture(produtosParaSalvar.size());
+            }
 
         } catch (Exception e) {
             logger.error("[carregarArquivo] Falha ao processar o arquivo {}", nomeArquivo, e);
@@ -67,17 +68,14 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
     /**
      * Validação: não deverá permitir incluir um registro com valores de product e type
      * iguais aos de um registro já existente.
-     * @param produtosDto
-     * @return
+     * @param produtosDto List<ProdutoJsonDTO>
+     * @param nomeArquivo String
+     * @return Set<ProdutoEntity>
      */
-    private List<ProdutoEntity> filtrarProdutosValidos(List<ProdutoJsonDTO> produtosDto, String nomeArquivo) {
+    private Set<ProdutoEntity> filtrarProdutosValidos(List<ProdutoJsonDTO> produtosDto, String nomeArquivo) {
         logger.info("[filtrarProdutosValidos] Iniciando filtragem e validacao dos produtos do arquivo {}, quantidade total de registros {}...", nomeArquivo, produtosDto.size());
 
-        List<ProdutoJsonDTO> produtosUnicosNoArquivo = produtosDto.stream()
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(dto -> dto.getProduct() + "::" + dto.getType()))),
-                        ArrayList::new
-                ));
+        Set<ProdutoJsonDTO> produtosUnicosNoArquivo = new HashSet<>(produtosDto);
         if (produtosUnicosNoArquivo.size() < produtosDto.size()) {
             logger.warn("[filtrarProdutosValidos] Arquivo {} continha {} registros duplicados (mesmo product e type), que foram ignorados.", nomeArquivo, produtosDto.size() - produtosUnicosNoArquivo.size());
         }
@@ -85,33 +83,32 @@ public class CargaProdutoServiceImpl implements CargaProdutoService {
         Set<String> chavesParaValidar = produtosUnicosNoArquivo.stream()
                 .map(dto -> dto.getProduct() + "::" + dto.getType())
                 .collect(Collectors.toSet());
-
         Set<String> chavesExistentesNoBanco = produtoRepository.buscarChavesExistentes(chavesParaValidar);
 
         if (!chavesExistentesNoBanco.isEmpty()) {
             logger.warn("[filtrarProdutosValidos] Encontrados {} produtos no arquivo {} que já existem no banco de dados e serão ignorados.", chavesExistentesNoBanco.size(), nomeArquivo);
         }
 
-        List<ProdutoEntity> produtosValidos = produtosUnicosNoArquivo.stream()
+        Set<ProdutoEntity> produtosValidos = produtosUnicosNoArquivo.stream()
                 .filter(produtoDto -> !chavesExistentesNoBanco.contains(produtoDto.getProduct() + "::" + produtoDto.getType()))
                 .map(this::toProdutoEntity)
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         return produtosValidos;
     }
 
     private ProdutoEntity toProdutoEntity(ProdutoJsonDTO dto) {
         try {
-            ProdutoEntity produto = new ProdutoEntity();
-            produto.setNome(dto.getProduct());
-            produto.setQuantidade(dto.getQuantity());
-            produto.setTipo(dto.getType());
-            produto.setIndustria(dto.getIndustry());
-            produto.setOrigem(dto.getOrigin());
-            produto.setPreco(ConversorFinanceiroUtil.getValorBigDecimal(dto.getPrice()));
-            return produto;
+            return new ProdutoEntity(null,
+                    dto.getProduct(),
+                    dto.getQuantity(),
+                    dto.getPriceBigDecimal(),
+                    dto.getType(),
+                    dto.getIndustry(),
+                    dto.getOrigin());
         } catch (FormatoDePrecoInvalidoException e) {
-            logger.error("Registro ignorado no arquivo. Produto: {} Tipo: {}. Erro: {}", dto.getProduct(), dto.getType(), e.getMessage());
+            logger.error("Registro ignorado no arquivo. Produto: {}. Erro: {}", dto, e.getMessage());
             return null;
         }
     }

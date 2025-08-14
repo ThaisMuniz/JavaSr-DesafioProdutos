@@ -1,15 +1,17 @@
 package br.com.desafio.produtos.domain.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
-@Data
+@EqualsAndHashCode(of = {"nome", "tipo"})
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 @Entity
 @Table(name = "produtos")
 public class ProdutoEntity {

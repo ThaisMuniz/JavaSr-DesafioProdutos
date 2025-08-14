@@ -1,6 +1,7 @@
 package br.com.desafio.produtos.service.impl;
 
 import br.com.desafio.produtos.domain.exception.RegistroDuplicadoException;
+import br.com.desafio.produtos.infrastructure.web.dto.PageResponseDTO;
 import br.com.desafio.produtos.infrastructure.web.dto.ProdutoRequestDTO;
 import br.com.desafio.produtos.service.ProdutoService;
 import br.com.desafio.produtos.domain.entity.ProdutoEntity;
@@ -22,9 +23,10 @@ public class ProdutoServiceImpl implements ProdutoService {
         this.produtoRepository = produtoRepository;
     }
 
-    public Page<ProdutoResponseDTO> buscarComFiltros(String nome, BigDecimal precoInicial, BigDecimal precoFinal, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public PageResponseDTO<ProdutoResponseDTO> buscarComFiltros(String nome, BigDecimal precoInicial, BigDecimal precoFinal, Pageable pageable) {
         Page<ProdutoEntity> paginaDeProdutos = produtoRepository.buscarComFiltros(nome, precoInicial, precoFinal, pageable);
-        return paginaDeProdutos.map(this::toProdutoDto);
+        return new PageResponseDTO<>(paginaDeProdutos.map(this::toProdutoDto));
     }
 
     @Transactional

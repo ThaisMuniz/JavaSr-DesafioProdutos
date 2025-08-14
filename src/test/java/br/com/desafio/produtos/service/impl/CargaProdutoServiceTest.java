@@ -39,15 +39,12 @@ public class CargaProdutoServiceTest {
     private CargaProdutoServiceImpl cargaProdutoService;
 
     @Captor
-    private ArgumentCaptor<List<ProdutoEntity>> produtosCaptor;
+    private ArgumentCaptor<Set<ProdutoEntity>> produtosCaptor;
 
     @Test
     void deveCarregarProdutosComSucesso() throws Exception {
-        ProdutoJsonDTO dto1 = new ProdutoJsonDTO();
-        dto1.setProduct("Produto A");
-        dto1.setType("Tipo 1");
-        dto1.setPrice("$10.50");
-        List<ProdutoJsonDTO> listaDeDtos = List.of(dto1);
+        var dto1 = new ProdutoJsonDTO("Produto A",1,"$10.50","Tipo 1","","");
+        var listaDeDtos = List.of(dto1);
 
         when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);
         when(objectReader.at("/data")).thenReturn(objectReader);
@@ -60,25 +57,18 @@ public class CargaProdutoServiceTest {
 
         verify(produtoRepository, times(1)).saveAll(produtosCaptor.capture());
 
-        List<ProdutoEntity> produtosSalvos = produtosCaptor.getValue();
+        var produtosSalvos = produtosCaptor.getValue();
         assertThat(produtosSalvos).hasSize(1);
-        assertThat(produtosSalvos.get(0).getNome()).isEqualTo("Produto A");
+        assertThat(produtosSalvos.iterator().next().getNome()).isEqualTo("Produto A");
     }
 
     @Test
     void naoDeveSalvarProdutosQueJaExistemNoBanco() throws Exception {
-        ProdutoJsonDTO dtoExistente = new ProdutoJsonDTO();
-        dtoExistente.setProduct("Produto Existente");
-        dtoExistente.setType("Tipo X");
-        dtoExistente.setPrice("$5.00");
+        var dtoExistente = new ProdutoJsonDTO("Produto Existente",2,"$5.00","Tipo X","","");
+        var dtoNovo = new ProdutoJsonDTO("Produto Novo",1,"$15.00","Tipo Y","","");
 
-        ProdutoJsonDTO dtoNovo = new ProdutoJsonDTO();
-        dtoNovo.setProduct("Produto Novo");
-        dtoNovo.setType("Tipo Y");
-        dtoNovo.setPrice("$15.00");
-
-        List<ProdutoJsonDTO> listaDeDtos = List.of(dtoExistente, dtoNovo);
-        String chaveExistente = "Produto Existente::Tipo X";
+        var listaDeDtos = List.of(dtoExistente, dtoNovo);
+        var chaveExistente = "Produto Existente::Tipo X";
 
         when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);
         when(objectReader.at("/data")).thenReturn(objectReader);
@@ -90,27 +80,20 @@ public class CargaProdutoServiceTest {
 
         assertThat(future).isCompletedWithValue(1);
         verify(produtoRepository, times(1)).saveAll(produtosCaptor.capture());
-        List<ProdutoEntity> produtosSalvos = produtosCaptor.getValue();
+
+        var produtosSalvos = produtosCaptor.getValue();
         assertThat(produtosSalvos).hasSize(1);
-        assertThat(produtosSalvos.get(0).getNome()).isEqualTo("Produto Novo"); // Apenas o novo produto deve ser salvo
+        assertThat(produtosSalvos.iterator().next().getNome()).isEqualTo("Produto Novo"); // Apenas o novo produto deve ser salvo
     }
 
     @Test
     void deveSalvarSomenteUmProdutoQuandoProductETypeDuplicados() throws Exception {
-        ProdutoJsonDTO dto1 = new ProdutoJsonDTO();
-        dto1.setProduct("Produto 1");
-        dto1.setType("Tipo X");
-        dto1.setPrice("$5.00");
-        ProdutoJsonDTO dto2 = new ProdutoJsonDTO();
-        dto2.setProduct("Produto 2");
-        dto2.setType("Tipo Y");
-        dto2.setPrice("$15.00");
-        ProdutoJsonDTO dto3 = new ProdutoJsonDTO();
-        dto3.setProduct("Produto 2");
-        dto3.setType("Tipo Y");
-        dto3.setPrice("$15.00");
-        List<ProdutoJsonDTO> listaDeDtos = List.of(dto1, dto2, dto3);
-        String chaveExistente = "Produto Existente::Tipo Z";
+        var dto1 = new ProdutoJsonDTO("Produto 1",1,"$5.00","Tipo X","","");
+        var dto2 = new ProdutoJsonDTO("Produto 2",2,"$15.00","Tipo Y","","");
+        var dto3 = new ProdutoJsonDTO("Produto 2", 3, "$15.00", "Tipo Y", "", "");
+
+        var listaDeDtos = List.of(dto1, dto2, dto3);
+        var chaveExistente = "Produto Existente::Tipo Z";
 
         when(objectMapper.readerFor(any(TypeReference.class))).thenReturn(objectReader);
         when(objectReader.at("/data")).thenReturn(objectReader);
@@ -121,9 +104,10 @@ public class CargaProdutoServiceTest {
 
         assertThat(future).isCompletedWithValue(2);
         verify(produtoRepository, times(1)).saveAll(produtosCaptor.capture());
-        List<ProdutoEntity> produtosSalvos = produtosCaptor.getValue();
+
+        var produtosSalvos = produtosCaptor.getValue();
         assertThat(produtosSalvos).hasSize(2);
-        assertThat(produtosSalvos.get(0).getNome()).isEqualTo("Produto 1");
+        assertThat(produtosSalvos.iterator().next().getNome()).isEqualTo("Produto 1");
     }
 
     @Test
